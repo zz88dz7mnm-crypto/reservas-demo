@@ -2,7 +2,16 @@
 
 import { useEffect, useState } from "react";
 
-type Bloqueo = { id: number; fecha: string; hora_inicio: string; hora_fin: string; motivo: string | null };
+type Bloqueo = {
+  id: number;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin: string;
+  motivo: string | null;
+  peluquero_id: number | null;
+  peluquero_nombre?: string | null;
+};
+type Peluquero = { id: number; nombre: string };
 
 const DIAS = ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"];
 const MESES = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
@@ -21,41 +30,51 @@ const hoyISO = getHoyISO();
 
 export default function BloqueosPage() {
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
+  const [peluqueros, setPeluqueros] = useState<Peluquero[]>([]);
   const [editando, setEditando] = useState<Bloqueo | null>(null);
   const [fecha, setFecha] = useState("");
   const [inicio, setInicio] = useState("09:00");
   const [fin, setFin] = useState("10:00");
   const [motivo, setMotivo] = useState("");
+  const [peluqueroId, setPeluqueroId] = useState<number | null>(null);
 
   const cargar = async () => {
-    const r = await fetch("/api/admin/bloqueos");
-    const d = await r.json();
-    setBloqueos(d.bloqueos || []);
+    const [rb, rp] = await Promise.all([
+      fetch("/api/admin/bloqueos"),
+      fetch("/api/admin/peluqueros"),
+    ]);
+    const db = await rb.json();
+    const dp = await rp.json();
+    setBloqueos(db.bloqueos || []);
+    setPeluqueros(dp.peluqueros || []);
   };
 
   useEffect(() => { cargar(); }, []);
 
   const resetForm = () => {
-    setEditando(null); setFecha(""); setInicio("09:00"); setFin("10:00"); setMotivo("");
+    setEditando(null); setFecha(""); setInicio("09:00"); setFin("10:00");
+    setMotivo(""); setPeluqueroId(null);
   };
 
   const cargarEdicion = (b: Bloqueo) => {
-    setEditando(b); setFecha(b.fecha); setInicio(b.hora_inicio); setFin(b.hora_fin); setMotivo(b.motivo || "");
+    setEditando(b); setFecha(b.fecha); setInicio(b.hora_inicio); setFin(b.hora_fin);
+    setMotivo(b.motivo || ""); setPeluqueroId(b.peluquero_id);
   };
 
   const guardar = async (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = { fecha, hora_inicio: inicio, hora_fin: fin, motivo, peluquero_id: peluqueroId };
     if (editando) {
       await fetch("/api/admin/bloqueos", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: editando.id, fecha, hora_inicio: inicio, hora_fin: fin, motivo }),
+        body: JSON.stringify({ id: editando.id, ...payload }),
       });
     } else {
       await fetch("/api/admin/bloqueos", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fecha, hora_inicio: inicio, hora_fin: fin, motivo }),
+        body: JSON.stringify(payload),
       });
     }
     resetForm(); cargar();
@@ -74,6 +93,9 @@ export default function BloqueosPage() {
   const futuros = bloqueos.filter(b => b.fecha >= hoyISO);
   const pasados = bloqueos.filter(b => b.fecha < hoyISO);
 
+  const nombreBloqueo = (b: Bloqueo) =>
+    b.peluquero_nombre ? b.peluquero_nombre : "Todo el local";
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Bloqueos de horario</h1>
@@ -84,7 +106,6 @@ export default function BloqueosPage() {
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <h2 className="font-semibold text-gray-800 mb-5">{editando ? "Editar bloqueo" : "Nuevo bloqueo"}</h2>
           <form onSubmit={guardar} className="space-y-3">
-            {/* Bloque unificado */}
             <div className="rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-4 py-2.5">
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Fecha</label>
@@ -104,6 +125,21 @@ export default function BloqueosPage() {
                     className="w-full bg-transparent text-sm text-gray-800 focus:outline-none" />
                 </div>
               </div>
+              {peluqueros.length > 0 && (
+                <div className="border-t border-gray-100 px-4 py-2.5">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Afecta a</label>
+                  <select
+                    value={peluqueroId ?? ""}
+                    onChange={e => setPeluqueroId(e.target.value ? Number(e.target.value) : null)}
+                    className="w-full bg-transparent text-sm text-gray-800 focus:outline-none"
+                  >
+                    <option value="">Todo el local</option>
+                    {peluqueros.map(p => (
+                      <option key={p.id} value={p.id}>{p.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
               <div className="border-t border-gray-100 px-4 py-2.5">
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Motivo (opcional)</label>
                 <input type="text" value={motivo} onChange={e => setMotivo(e.target.value)}
@@ -134,7 +170,7 @@ export default function BloqueosPage() {
                   <div className="min-w-0">
                     <p className="font-semibold text-gray-800 text-sm">{formatFecha(b.fecha)}</p>
                     <p className="text-gray-600 text-sm">{b.hora_inicio} — {b.hora_fin}</p>
-                    {b.motivo && <p className="text-gray-400 text-xs mt-0.5">{b.motivo}</p>}
+                    <p className="text-[11px] text-gray-400 mt-0.5">{nombreBloqueo(b)}{b.motivo ? ` · ${b.motivo}` : ""}</p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button onClick={() => cargarEdicion(b)} className="text-xs bg-white border border-gray-300 text-gray-700 px-3 py-1.5 rounded-lg hover:bg-gray-100 transition-colors font-medium">
@@ -156,7 +192,7 @@ export default function BloqueosPage() {
                 <div key={b.id} className="rounded-2xl border border-gray-100 bg-white p-3 mb-2 flex items-center justify-between gap-3 opacity-50">
                   <div>
                     <p className="text-sm text-gray-600">{formatFecha(b.fecha)} · {b.hora_inicio} — {b.hora_fin}</p>
-                    {b.motivo && <p className="text-xs text-gray-400">{b.motivo}</p>}
+                    <p className="text-xs text-gray-400">{nombreBloqueo(b)}{b.motivo ? ` · ${b.motivo}` : ""}</p>
                   </div>
                   <button onClick={() => eliminar(b.id)} className="text-xs text-gray-400 hover:text-red-500 px-2 py-1 rounded-lg transition-colors">
                     Eliminar

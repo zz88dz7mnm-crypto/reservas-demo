@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "El cuerpo de la solicitud no es válido." }, { status: 400 });
   }
 
-  const { cliente_nombre, cliente_telefono, servicio_id, fecha, hora_inicio } = body;
+  const { cliente_nombre, cliente_telefono, servicio_id, fecha, hora_inicio, peluquero_id, observaciones } = body;
 
   if (!cliente_nombre || !cliente_telefono || !servicio_id || !fecha || !hora_inicio) {
     return NextResponse.json({ error: "Faltan datos obligatorios." }, { status: 400 });
@@ -42,6 +42,13 @@ export async function POST(req: NextRequest) {
   if (!isFechaEnRango(fecha as string, 30)) {
     return NextResponse.json({ error: "Solo se puede reservar dentro de los próximos 30 días." }, { status: 400 });
   }
+  if (observaciones !== undefined && observaciones !== null) {
+    if (typeof observaciones !== "string" || observaciones.length > 500) {
+      return NextResponse.json({ error: "Las observaciones no pueden superar los 500 caracteres." }, { status: 400 });
+    }
+  }
+
+  const pId = peluquero_id != null ? Number(peluquero_id) : null;
 
   const { data: servicio } = await supabase
     .from("servicios")
@@ -54,9 +61,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "El servicio seleccionado no está disponible." }, { status: 400 });
   }
 
-  // Verificar que el slot exista en los huecos disponibles
-  const huecos = await getHuecosDisponibles(fecha as string, servicio.duracion);
-  const slotValido = huecos.some(h => h.hora_inicio === hora_inicio);
+  const huecos = await getHuecosDisponibles(fecha as string, servicio.duracion, pId ?? undefined);
+  const slotValido = huecos.some((h) => h.hora_inicio === hora_inicio);
   if (!slotValido) {
     return NextResponse.json({ error: "Este horario ya no está disponible. Por favor elegí otro." }, { status: 409 });
   }
@@ -65,14 +71,15 @@ export async function POST(req: NextRequest) {
   const totalMin = h * 60 + m + servicio.duracion;
   const horaFin = `${String(Math.floor(totalMin / 60)).padStart(2, "0")}:${String(totalMin % 60).padStart(2, "0")}`;
 
-  // Inserción atómica via función PostgreSQL (evita doble reserva)
   const { data, error } = await supabase.rpc("crear_reserva", {
-    p_nombre:      (cliente_nombre as string).trim(),
-    p_telefono:    cliente_telefono,
-    p_servicio_id: servicio.id,
-    p_fecha:       fecha,
-    p_hora_inicio: hora_inicio,
-    p_hora_fin:    horaFin,
+    p_nombre:        (cliente_nombre as string).trim(),
+    p_telefono:      cliente_telefono,
+    p_servicio_id:   servicio.id,
+    p_fecha:         fecha,
+    p_hora_inicio:   hora_inicio,
+    p_hora_fin:      horaFin,
+    p_peluquero_id:  pId,
+    p_observaciones: (observaciones as string | null) ?? null,
   });
 
   if (error) {

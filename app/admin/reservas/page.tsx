@@ -11,6 +11,8 @@ type Reserva = {
   hora_inicio: string;
   hora_fin: string;
   estado: string;
+  peluquero_nombre?: string | null;
+  observaciones?: string | null;
 };
 
 const DIAS = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
@@ -204,6 +206,7 @@ export default function ReservasPage() {
 function TurnoCard({ r, onActuar, onAtender }: { r: Reserva; onActuar: (id: number, estado: string) => void; onAtender?: (id: number) => void }) {
   const cancelada = r.estado === "cancelada";
   const asistOk = r.estado === "asistencia_confirmada";
+  const [obsExpanded, setObsExpanded] = useState(false);
 
   function waLinkCard() {
     const t = r.cliente_telefono.replace(/\D/g, "");
@@ -239,6 +242,27 @@ function TurnoCard({ r, onActuar, onAtender }: { r: Reserva; onActuar: (id: numb
           </div>
           <p className="text-sm text-gray-500">{r.servicio_nombre}</p>
           <p className="text-xs text-gray-400 mt-0.5">{r.cliente_telefono}</p>
+          {r.peluquero_nombre && (
+            <span className="inline-block mt-1.5 text-[10px] font-semibold uppercase tracking-wider bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+              {r.peluquero_nombre}
+            </span>
+          )}
+          {r.observaciones && (
+            <button
+              onClick={() => setObsExpanded(v => !v)}
+              className="flex items-center gap-1 mt-2 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg className={`w-3 h-3 transition-transform ${obsExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7"/>
+              </svg>
+              Observaciones
+            </button>
+          )}
+          {r.observaciones && obsExpanded && (
+            <p className="mt-1.5 text-xs text-gray-600 pl-3 border-l-2 border-gray-200 leading-relaxed">
+              {r.observaciones}
+            </p>
+          )}
         </div>
 
         {/* Acciones */}

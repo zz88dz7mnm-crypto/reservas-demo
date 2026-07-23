@@ -18,9 +18,18 @@ function validar(fecha: unknown, hora_inicio: unknown, hora_fin: unknown) {
 
 export async function GET() {
   if (!(await checkAuth())) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  const { data, error } = await supabase.from("bloqueos").select("*").order("fecha").order("hora_inicio");
+  const { data, error } = await supabase
+    .from("bloqueos")
+    .select("*, peluqueros(nombre)")
+    .order("fecha")
+    .order("hora_inicio");
   if (error) return NextResponse.json({ error: "Error al obtener bloqueos." }, { status: 500 });
-  return NextResponse.json({ bloqueos: data });
+  const bloqueos = (data ?? []).map(b => ({
+    ...b,
+    peluquero_nombre: (b.peluqueros as { nombre?: string } | null)?.nombre ?? null,
+    peluqueros: undefined,
+  }));
+  return NextResponse.json({ bloqueos });
 }
 
 export async function POST(req: NextRequest) {
@@ -31,13 +40,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Cuerpo inválido." }, { status: 400 });
   }
 
-  const { fecha, hora_inicio, hora_fin, motivo } = body;
+  const { fecha, hora_inicio, hora_fin, motivo, peluquero_id } = body;
   const err = validar(fecha, hora_inicio, hora_fin);
   if (err) return NextResponse.json({ error: err }, { status: 400 });
 
   const { data, error } = await supabase
     .from("bloqueos")
-    .insert({ fecha, hora_inicio, hora_fin, motivo: motivo || null })
+    .insert({ fecha, hora_inicio, hora_fin, motivo: motivo || null, peluquero_id: peluquero_id ?? null })
     .select("id")
     .single();
 
@@ -53,7 +62,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Cuerpo inválido." }, { status: 400 });
   }
 
-  const { id, fecha, hora_inicio, hora_fin, motivo } = body;
+  const { id, fecha, hora_inicio, hora_fin, motivo, peluquero_id } = body;
   if (!id) return NextResponse.json({ error: "ID requerido." }, { status: 400 });
 
   const err = validar(fecha, hora_inicio, hora_fin);
@@ -61,7 +70,7 @@ export async function PUT(req: NextRequest) {
 
   const { data, error } = await supabase
     .from("bloqueos")
-    .update({ fecha, hora_inicio, hora_fin, motivo: motivo || null })
+    .update({ fecha, hora_inicio, hora_fin, motivo: motivo || null, peluquero_id: peluquero_id ?? null })
     .eq("id", id)
     .select("id");
 

@@ -7,6 +7,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const fecha = searchParams.get("fecha");
   const servicioId = searchParams.get("servicio_id");
+  const peluqueroIdStr = searchParams.get("peluquero_id");
 
   if (!fecha || !servicioId) {
     return NextResponse.json({ error: "Faltan parámetros." }, { status: 400 });
@@ -20,6 +21,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "servicio_id inválido." }, { status: 400 });
   }
 
+  const peluqueroId = peluqueroIdStr ? Number(peluqueroIdStr) : undefined;
+
   const { data: servicio } = await supabase
     .from("servicios")
     .select("duracion")
@@ -29,6 +32,6 @@ export async function GET(req: NextRequest) {
 
   if (!servicio) return NextResponse.json({ error: "Servicio no encontrado." }, { status: 404 });
 
-  const huecos = await getHuecosDisponibles(fecha, servicio.duracion);
+  const huecos = await getHuecosDisponibles(fecha, servicio.duracion, peluqueroId);
   return NextResponse.json({ huecos });
 }

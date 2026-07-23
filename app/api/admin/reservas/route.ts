@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from("reservas")
-    .select("*, servicios(nombre, duracion)")
+    .select("*, servicios(nombre, duracion), peluqueros(nombre)")
     .order("hora_inicio");
 
   if (fecha) query = query.eq("fecha", fecha);
@@ -30,7 +30,9 @@ export async function GET(req: NextRequest) {
     ...r,
     servicio_nombre: r.servicios?.nombre,
     duracion: r.servicios?.duracion,
+    peluquero_nombre: (r.peluqueros as { nombre?: string } | null)?.nombre ?? null,
     servicios: undefined,
+    peluqueros: undefined,
   }));
 
   return NextResponse.json({ reservas });

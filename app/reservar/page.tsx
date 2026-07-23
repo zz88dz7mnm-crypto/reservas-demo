@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 
 type Servicio = { id: number; nombre: string; duracion: number; precio: number | null };
 type Hueco = { hora_inicio: string; hora_fin: string };
+type Peluquero = { id: number; nombre: string; foto_url: string | null };
+type PeluqueroOpcion = { id: number | null; nombre: string };
 
 const DIAS_CAB = ["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"];
 const DIAS_LARGO = ["Domingo","Lunes","Martes","Miércoles","Jueves","Viernes","Sábado"];
@@ -59,7 +61,6 @@ function Calendario({ seleccionada, onSelect }: { seleccionada: string; onSelect
 
   return (
     <div className="select-none">
-      {/* Cabecera mes */}
       <div className="flex items-center justify-between mb-5">
         <button
           onClick={() => navMes(-1)}
@@ -76,15 +77,9 @@ function Calendario({ seleccionada, onSelect }: { seleccionada: string; onSelect
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/></svg>
         </button>
       </div>
-
-      {/* Cabecera días */}
-      <div className="grid grid-cols-7 mb-1">
-        {DIAS_CAB.map(d => (
-          <div key={d} className="text-center text-xs text-neutral-400 font-semibold py-1">{d}</div>
-        ))}
+      <div className="grid grid-cols-7 mb-2">
+        {DIAS_CAB.map(d => <div key={d} className="text-center text-xs font-semibold text-neutral-400 py-1">{d}</div>)}
       </div>
-
-      {/* Grid días */}
       <div className="grid grid-cols-7 gap-y-1">
         {celdas.map((dia, i) => {
           if (!dia) return <div key={i} />;
@@ -122,22 +117,29 @@ export default function ReservarPage() {
   const [step, setStep] = useState(1);
   const [servicios, setServicios] = useState<Servicio[]>([]);
   const [servicioSel, setServicioSel] = useState<Servicio | null>(null);
+  const [peluqueros, setPeluqueros] = useState<Peluquero[]>([]);
+  const [peluqueroSel, setPeluqueroSel] = useState<PeluqueroOpcion | null>(null);
   const [fechaSel, setFechaSel] = useState("");
   const [huecos, setHuecos] = useState<Hueco[]>([]);
   const [huecoSel, setHuecoSel] = useState<Hueco | null>(null);
   const [nombre, setNombre] = useState("");
   const [telefonoLocal, setTelefonoLocal] = useState("");
+  const [observaciones, setObservaciones] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [reservaFinal, setReservaFinal] = useState<{ servicio: string; fecha: string; hora: string } | null>(null);
+  const [reservaFinal, setReservaFinal] = useState<{
+    servicio: string; fecha: string; hora: string; peluquero: string;
+  } | null>(null);
 
   useEffect(() => {
     fetch("/api/public/servicios").then(r => r.json()).then(d => setServicios(d.servicios));
+    fetch("/api/public/peluqueros").then(r => r.json()).then(d => setPeluqueros(d.peluqueros ?? []));
   }, []);
 
-  const cargarHuecos = async (fecha: string, servicio: Servicio) => {
+  const cargarHuecos = async (fecha: string, servicio: Servicio, peluquero: PeluqueroOpcion | null) => {
     setLoading(true); setHuecos([]); setError("");
-    const r = await fetch(`/api/public/disponibilidad?fecha=${fecha}&servicio_id=${servicio.id}`);
+    const pParam = peluquero?.id ? `&peluquero_id=${peluquero.id}` : "";
+    const r = await fetch(`/api/public/disponibilidad?fecha=${fecha}&servicio_id=${servicio.id}${pParam}`);
     const d = await r.json();
     setHuecos(d.huecos || []);
     setLoading(false);
@@ -146,8 +148,8 @@ export default function ReservarPage() {
   const seleccionarFecha = async (iso: string) => {
     setFechaSel(iso);
     setHuecoSel(null);
-    await cargarHuecos(iso, servicioSel!);
-    setStep(3);
+    await cargarHuecos(iso, servicioSel!, peluqueroSel);
+    setStep(4);
   };
 
   const confirmarReserva = async () => {
@@ -163,21 +165,28 @@ export default function ReservarPage() {
         servicio_id: servicioSel!.id,
         fecha: fechaSel,
         hora_inicio: huecoSel!.hora_inicio,
+        peluquero_id: peluqueroSel?.id ?? null,
+        observaciones: observaciones.trim() || null,
       }),
     });
     const d = await r.json();
     setLoading(false);
     if (!r.ok) {
       setError(d.error || "Error al reservar");
-      await cargarHuecos(fechaSel, servicioSel!);
-      setHuecoSel(null); setStep(3); return;
+      await cargarHuecos(fechaSel, servicioSel!, peluqueroSel);
+      setHuecoSel(null); setStep(4); return;
     }
-    setReservaFinal({ servicio: servicioSel!.nombre, fecha: formatFechaLarga(fechaSel), hora: `${huecoSel!.hora_inicio} a ${d.hora_fin}` });
-    setStep(5);
+    setReservaFinal({
+      servicio: servicioSel!.nombre,
+      fecha: formatFechaLarga(fechaSel),
+      hora: `${huecoSel!.hora_inicio} a ${d.hora_fin}`,
+      peluquero: peluqueroSel?.nombre ?? "Cualquiera",
+    });
+    setStep(6);
   };
 
-  // --- PASO 5: Confirmación ---
-  if (step === 5 && reservaFinal) {
+  // --- Pantalla de confirmación ---
+  if (step === 6 && reservaFinal) {
     return (
       <div className="min-h-dvh bg-white flex flex-col items-center justify-center p-6 text-center">
         <div className="w-16 h-16 rounded-2xl bg-neutral-900 flex items-center justify-center mb-8 shadow-lg">
@@ -192,6 +201,7 @@ export default function ReservarPage() {
             { label: "Servicio", value: reservaFinal.servicio },
             { label: "Fecha", value: reservaFinal.fecha },
             { label: "Horario", value: reservaFinal.hora },
+            { label: "Con", value: reservaFinal.peluquero },
           ].map(item => (
             <div key={item.label} className="flex justify-between items-baseline">
               <span className="text-neutral-400 text-sm">{item.label}</span>
@@ -205,6 +215,11 @@ export default function ReservarPage() {
   }
 
   const { manana, tarde } = agruparHuecos(huecos);
+
+  const opcionesPeluquero: PeluqueroOpcion[] = [
+    { id: null, nombre: "Cualquiera" },
+    ...peluqueros.map(p => ({ id: p.id, nombre: p.nombre })),
+  ];
 
   return (
     <div className="min-h-dvh bg-white flex flex-col">
@@ -224,21 +239,23 @@ export default function ReservarPage() {
         <div className="flex-1">
           <p className="font-bold text-neutral-900 text-base">
             {step === 1 && "Reservar turno"}
-            {step === 2 && "Elegir fecha"}
-            {step === 3 && "Elegir horario"}
-            {step === 4 && "Confirmar turno"}
+            {step === 2 && "Elegir peluquero"}
+            {step === 3 && "Elegir fecha"}
+            {step === 4 && "Elegir horario"}
+            {step === 5 && "Confirmar turno"}
           </p>
           {step > 1 && (
             <p className="text-xs text-neutral-400 mt-0.5">
               {step === 2 && servicioSel?.nombre}
-              {step === 3 && (fechaSel ? formatFechaLarga(fechaSel) : servicioSel?.nombre)}
-              {step === 4 && `${servicioSel?.nombre} · ${huecoSel?.hora_inicio}`}
+              {step === 3 && `${servicioSel?.nombre} · ${peluqueroSel?.nombre ?? "Cualquiera"}`}
+              {step === 4 && (fechaSel ? formatFechaLarga(fechaSel) : servicioSel?.nombre)}
+              {step === 5 && `${servicioSel?.nombre} · ${huecoSel?.hora_inicio}`}
             </p>
           )}
         </div>
         {/* Progress */}
         <div className="flex gap-1">
-          {[1,2,3,4].map(s => (
+          {[1,2,3,4,5].map(s => (
             <div key={s} className={`h-1 rounded-full transition-all duration-300 ${
               s === step ? "w-6 bg-neutral-900" :
               s < step ? "w-3 bg-neutral-400" :
@@ -250,9 +267,9 @@ export default function ReservarPage() {
 
       <div className="flex-1 flex flex-col overflow-hidden">
 
-        {/* PASO 1: Servicio */}
+        {/* PASO 1: Servicio + Ubicación */}
         {step === 1 && (
-          <div className="flex-1 flex flex-col px-5 pt-6">
+          <div className="flex-1 flex flex-col px-5 pt-6 overflow-y-auto pb-8">
             <h1 className="text-2xl font-bold text-neutral-900 mb-1">¿Qué necesitás?</h1>
             <p className="text-neutral-400 text-sm mb-6">Elegí el servicio para continuar</p>
             <div className="space-y-2">
@@ -275,11 +292,98 @@ export default function ReservarPage() {
                 </button>
               ))}
             </div>
+
+            {/* Ubicación */}
+            <div className="mt-8">
+              <div className="flex items-center gap-2 mb-3">
+                <svg className="w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                <span className="text-xs font-semibold uppercase tracking-widest text-neutral-400">Cómo llegar</span>
+              </div>
+              <div className="rounded-2xl overflow-hidden border border-neutral-200">
+                <iframe
+                  src="https://maps.google.com/maps?q=Dean+Funes+1223,+Cordoba,+Argentina&output=embed&z=16"
+                  width="100%"
+                  height="200"
+                  style={{ border: 0, display: "block" }}
+                  allowFullScreen
+                  loading="lazy"
+                  title="Ubicación"
+                />
+                <div className="px-4 py-3 bg-white flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-neutral-800">Deán Funes 1223</p>
+                    <p className="text-xs text-neutral-400">Córdoba, Argentina</p>
+                  </div>
+                  <a
+                    href="https://maps.google.com/?q=Dean+Funes+1223,+Cordoba,+Argentina"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs font-semibold text-neutral-900 bg-neutral-100 hover:bg-neutral-200 px-3 py-1.5 rounded-lg transition-colors"
+                  >
+                    Abrir Maps
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* PASO 2: Fecha */}
+        {/* PASO 2: Peluquero */}
         {step === 2 && (
+          <div className="flex-1 flex flex-col px-5 pt-6">
+            <h1 className="text-2xl font-bold text-neutral-900 mb-1">¿Con quién?</h1>
+            <p className="text-neutral-400 text-sm mb-6">Podés elegir o dejarnos decidir</p>
+            <div className="space-y-2">
+              {opcionesPeluquero.map(op => {
+                const sel = peluqueroSel?.id === op.id && (op.id !== null || peluqueroSel !== null);
+                const esCualquiera = op.id === null;
+                return (
+                  <button
+                    key={op.id ?? "cualquiera"}
+                    onClick={() => { setPeluqueroSel(op); setStep(3); }}
+                    className={`w-full flex items-center gap-4 p-5 rounded-2xl border active:scale-[0.99] transition-all text-left ${
+                      sel ? "bg-neutral-900 border-neutral-900" : "bg-neutral-50 border-neutral-200 hover:border-neutral-400 hover:bg-neutral-100"
+                    }`}
+                  >
+                    {esCualquiera ? (
+                      <div className="w-11 h-11 rounded-full bg-neutral-200 flex items-center justify-center shrink-0">
+                        <svg className="w-5 h-5 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a4 4 0 00-5.196-3.796M9 20H4v-2a4 4 0 015.196-3.796M15 7a4 4 0 11-8 0 4 4 0 018 0zM21 12a3 3 0 11-6 0 3 3 0 016 0zM9 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                      </div>
+                    ) : (
+                      <div className="w-11 h-11 rounded-full bg-neutral-200 shrink-0 overflow-hidden flex items-center justify-center">
+                        {peluqueros.find(p => p.id === op.id)?.foto_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={peluqueros.find(p => p.id === op.id)!.foto_url!} alt={op.nombre} className="w-full h-full object-cover" />
+                        ) : (
+                          <svg className="w-5 h-5 text-neutral-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <circle cx="12" cy="8" r="4"/><path strokeLinecap="round" d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+                          </svg>
+                        )}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className={`font-semibold ${sel ? "text-white" : "text-neutral-900"}`}>{op.nombre}</div>
+                      {esCualquiera && (
+                        <div className={`text-sm mt-0.5 ${sel ? "text-neutral-300" : "text-neutral-400"}`}>El primero disponible en el horario que elijas</div>
+                      )}
+                    </div>
+                    <svg className={`w-4 h-4 shrink-0 ${sel ? "text-neutral-400" : "text-neutral-300"}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* PASO 3: Fecha */}
+        {step === 3 && (
           <div className="flex-1 flex flex-col px-5 pt-6 overflow-y-auto">
             <h1 className="text-2xl font-bold text-neutral-900 mb-1">¿Qué día?</h1>
             <p className="text-neutral-400 text-sm mb-6">Podés reservar hasta 30 días adelante</p>
@@ -287,11 +391,11 @@ export default function ReservarPage() {
           </div>
         )}
 
-        {/* PASO 3: Horario */}
-        {step === 3 && (
+        {/* PASO 4: Horario */}
+        {step === 4 && (
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="px-5 pt-6 mb-4 shrink-0">
-              <h1 className="text-2xl font-bold text-neutral-900 mb-1">A que hora?</h1>
+              <h1 className="text-2xl font-bold text-neutral-900 mb-1">¿A qué hora?</h1>
               <p className="text-neutral-400 text-sm">{fechaSel ? formatFechaLarga(fechaSel) : ""}</p>
             </div>
             {error && (
@@ -309,9 +413,9 @@ export default function ReservarPage() {
               </div>
             ) : huecos.length === 0 ? (
               <div className="flex-1 flex flex-col items-center justify-center px-5 text-center gap-4">
-                <p className="text-neutral-500">No hay turnos disponibles para este dia.</p>
-                <button onClick={() => setStep(2)} className="text-neutral-900 font-semibold text-sm underline underline-offset-4">
-                  Elegir otro dia
+                <p className="text-neutral-500">No hay turnos disponibles para este día.</p>
+                <button onClick={() => setStep(3)} className="text-neutral-900 font-semibold text-sm underline underline-offset-4">
+                  Elegir otro día
                 </button>
               </div>
             ) : (
@@ -323,7 +427,7 @@ export default function ReservarPage() {
                       {manana.map(h => (
                         <button
                           key={h.hora_inicio}
-                          onClick={() => { setHuecoSel(h); setStep(4); }}
+                          onClick={() => { setHuecoSel(h); setStep(5); }}
                           className="py-3.5 px-2 rounded-xl bg-neutral-50 border border-neutral-200 hover:border-neutral-900 hover:bg-neutral-900 hover:text-white active:scale-95 transition-all text-center font-semibold text-neutral-800 text-sm"
                         >
                           {h.hora_inicio}
@@ -339,7 +443,7 @@ export default function ReservarPage() {
                       {tarde.map(h => (
                         <button
                           key={h.hora_inicio}
-                          onClick={() => { setHuecoSel(h); setStep(4); }}
+                          onClick={() => { setHuecoSel(h); setStep(5); }}
                           className="py-3.5 px-2 rounded-xl bg-neutral-50 border border-neutral-200 hover:border-neutral-900 hover:bg-neutral-900 hover:text-white active:scale-95 transition-all text-center font-semibold text-neutral-800 text-sm"
                         >
                           {h.hora_inicio}
@@ -353,8 +457,8 @@ export default function ReservarPage() {
           </div>
         )}
 
-        {/* PASO 4: Datos */}
-        {step === 4 && (
+        {/* PASO 5: Datos + Observaciones */}
+        {step === 5 && (
           <div className="flex-1 flex flex-col px-5 pt-6 overflow-y-auto">
             <h1 className="text-2xl font-bold text-neutral-900 mb-1">Tus datos</h1>
             <p className="text-neutral-400 text-sm mb-6">Para confirmar la reserva</p>
@@ -362,8 +466,13 @@ export default function ReservarPage() {
             {/* Resumen */}
             <div className="rounded-2xl bg-neutral-50 border border-neutral-200 p-4 mb-6">
               <p className="font-semibold text-neutral-900">{servicioSel?.nombre}</p>
-              <p className="text-neutral-500 text-sm mt-0.5">{formatFechaLarga(fechaSel)} · {huecoSel?.hora_inicio}</p>
-              <button onClick={() => setStep(2)} className="text-xs text-neutral-500 underline underline-offset-2 mt-2 hover:text-neutral-800">
+              <p className="text-neutral-500 text-sm mt-0.5">
+                {formatFechaLarga(fechaSel)} · {huecoSel?.hora_inicio}
+                {peluqueroSel && peluqueroSel.id !== null && (
+                  <span className="ml-2 text-neutral-400">· {peluqueroSel.nombre}</span>
+                )}
+              </p>
+              <button onClick={() => setStep(3)} className="text-xs text-neutral-500 underline underline-offset-2 mt-2 hover:text-neutral-800">
                 Cambiar fecha u horario
               </button>
             </div>
@@ -397,6 +506,22 @@ export default function ReservarPage() {
                     className="flex-1 bg-transparent px-4 py-3.5 text-neutral-900 placeholder:text-neutral-300 focus:outline-none"
                   />
                 </div>
+              </div>
+              <div>
+                <label className="block text-xs text-neutral-500 font-semibold uppercase tracking-wider mb-2">
+                  Observaciones <span className="text-neutral-300 font-normal normal-case tracking-normal">(opcional)</span>
+                </label>
+                <textarea
+                  value={observaciones}
+                  onChange={e => setObservaciones(e.target.value)}
+                  placeholder="Ej: Tengo el pelo largo, quiero que me lo dejen así pero prolijo..."
+                  rows={3}
+                  maxLength={500}
+                  className="w-full bg-neutral-50 border border-neutral-200 rounded-xl px-4 py-3.5 text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-neutral-900 transition-colors resize-none text-sm"
+                />
+                {observaciones.length > 400 && (
+                  <p className="text-xs text-neutral-400 mt-1 text-right">{observaciones.length}/500</p>
+                )}
               </div>
             </div>
 
