@@ -231,8 +231,9 @@ function TurnoCard({ r, onActuar, onAtender }: { r: Reserva; onActuar: (id: numb
 
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-            <span className={`font-semibold text-base ${cancelada ? "text-gray-400 line-through" : "text-gray-900"}`}>{r.cliente_nombre}</span>
+          {/* Servicio — lo más importante */}
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className={`font-bold text-base ${cancelada ? "text-gray-400 line-through" : "text-gray-900"}`}>{r.servicio_nombre}</span>
             {asistOk && (
               <span className="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium">Viene</span>
             )}
@@ -240,13 +241,21 @@ function TurnoCard({ r, onActuar, onAtender }: { r: Reserva; onActuar: (id: numb
               <span className="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full">Cancelado</span>
             )}
           </div>
-          <p className="text-sm text-gray-500">{r.servicio_nombre}</p>
-          <p className="text-xs text-gray-400 mt-0.5">{r.cliente_telefono}</p>
+
+          {/* Peluquero — destacado */}
           {r.peluquero_nombre && (
-            <span className="inline-block mt-1.5 text-[10px] font-semibold uppercase tracking-wider bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
-              {r.peluquero_nombre}
-            </span>
+            <div className={`flex items-center gap-1.5 mb-1 ${cancelada ? "opacity-50" : ""}`}>
+              <svg className="w-3.5 h-3.5 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <circle cx="12" cy="8" r="4"/><path strokeLinecap="round" d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+              </svg>
+              <span className="text-sm font-semibold text-gray-600">{r.peluquero_nombre}</span>
+            </div>
           )}
+
+          {/* Cliente */}
+          <p className="text-sm text-gray-500">{r.cliente_nombre}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{r.cliente_telefono}</p>
+
           {r.observaciones && (
             <button
               onClick={() => setObsExpanded(v => !v)}
