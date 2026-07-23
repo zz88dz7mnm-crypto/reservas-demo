@@ -68,41 +68,26 @@ export default function ServiciosPage() {
         {/* Formulario */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <h2 className="font-semibold text-gray-800 mb-5">{editando ? "Editar servicio" : "Nuevo servicio"}</h2>
-          <form onSubmit={guardar} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Nombre del servicio</label>
-              <input
-                type="text"
-                value={nombre}
-                onChange={e => setNombre(e.target.value)}
-                placeholder="Ej: Corte de pelo"
-                required
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-800"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div className="flex-1">
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Duración aprox. (min)</label>
-                <input
-                  type="number"
-                  min={5}
-                  max={240}
-                  value={duracion}
-                  onChange={e => setDuracion(e.target.value)}
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-800"
-                />
+          <form onSubmit={guardar} className="space-y-3">
+            <div className="rounded-xl border border-gray-200 overflow-hidden">
+              <div className="px-4 py-2.5">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Nombre del servicio</label>
+                <input type="text" value={nombre} onChange={e => setNombre(e.target.value)}
+                  placeholder="Ej: Corte de pelo" required
+                  className="w-full bg-transparent text-sm text-gray-800 placeholder:text-gray-300 focus:outline-none" />
               </div>
-              <div className="flex-1">
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Precio ($)</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={precio}
-                  onChange={e => setPrecio(e.target.value)}
-                  placeholder="Opcional"
-                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-800"
-                />
+              <div className="border-t border-gray-100 grid grid-cols-2">
+                <div className="px-4 py-2.5 border-r border-gray-100">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Duración (min)</label>
+                  <input type="number" min={5} max={240} value={duracion} onChange={e => setDuracion(e.target.value)} required
+                    className="w-full bg-transparent text-sm text-gray-800 focus:outline-none" />
+                </div>
+                <div className="px-4 py-2.5">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Precio ($)</label>
+                  <input type="number" min={0} value={precio} onChange={e => setPrecio(e.target.value)}
+                    placeholder="Opcional"
+                    className="w-full bg-transparent text-sm text-gray-800 placeholder:text-gray-300 focus:outline-none" />
+                </div>
               </div>
             </div>
             <div className="flex gap-2 pt-1">

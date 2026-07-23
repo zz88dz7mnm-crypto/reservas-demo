@@ -55,37 +55,26 @@ export default function HorariosPage() {
         {/* Formulario */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <h2 className="font-semibold text-gray-800 mb-5">Configurar día</h2>
-          <form onSubmit={guardar} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Día de la semana</label>
-              <select
-                value={dia}
-                onChange={e => setDia(e.target.value)}
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-800 bg-white"
-              >
-                {DIAS.map((d, i) => (
-                  <option key={i} value={i}>{d}</option>
-                ))}
-              </select>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Apertura</label>
-                <input
-                  type="time"
-                  value={inicio}
-                  onChange={e => setInicio(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-800"
-                />
+          <form onSubmit={guardar} className="space-y-3">
+            <div className="rounded-xl border border-gray-200 overflow-hidden">
+              <div className="px-4 py-2.5">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Día de la semana</label>
+                <select value={dia} onChange={e => setDia(e.target.value)}
+                  className="w-full bg-transparent text-sm text-gray-800 focus:outline-none">
+                  {DIAS.map((d, i) => <option key={i} value={i}>{d}</option>)}
+                </select>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Cierre</label>
-                <input
-                  type="time"
-                  value={fin}
-                  onChange={e => setFin(e.target.value)}
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-800"
-                />
+              <div className="border-t border-gray-100 grid grid-cols-2">
+                <div className="px-4 py-2.5 border-r border-gray-100">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Apertura</label>
+                  <input type="time" value={inicio} onChange={e => setInicio(e.target.value)}
+                    className="w-full bg-transparent text-sm text-gray-800 focus:outline-none" />
+                </div>
+                <div className="px-4 py-2.5">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Cierre</label>
+                  <input type="time" value={fin} onChange={e => setFin(e.target.value)}
+                    className="w-full bg-transparent text-sm text-gray-800 focus:outline-none" />
+                </div>
               </div>
             </div>
             <p className="text-xs text-gray-400">Si el día ya tiene horario, se reemplaza automáticamente.</p>

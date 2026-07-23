@@ -79,50 +79,34 @@ export default function BloqueosPage() {
         {/* Formulario */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6">
           <h2 className="font-semibold text-gray-800 mb-5">{editando ? "Editar bloqueo" : "Nuevo bloqueo"}</h2>
-          <form onSubmit={guardar} className="space-y-4">
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Fecha</label>
-              <input
-                type="date"
-                value={fecha}
-                onChange={e => setFecha(e.target.value)}
-                required
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-800"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Desde</label>
-                <input
-                  type="time"
-                  value={inicio}
-                  onChange={e => setInicio(e.target.value)}
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-800"
-                />
+          <form onSubmit={guardar} className="space-y-3">
+            {/* Bloque unificado */}
+            <div className="rounded-xl border border-gray-200 overflow-hidden">
+              <div className="px-4 py-2.5">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Fecha</label>
+                <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} required
+                  className="w-full bg-transparent text-sm text-gray-800 focus:outline-none" />
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Hasta</label>
-                <input
-                  type="time"
-                  value={fin}
-                  onChange={e => setFin(e.target.value)}
-                  required
-                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-800"
-                />
+              <div className="border-t border-gray-100 grid grid-cols-2">
+                <div className="px-4 py-2.5 border-r border-gray-100">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Desde</label>
+                  <input type="time" value={inicio} onChange={e => setInicio(e.target.value)} required
+                    className="w-full bg-transparent text-sm text-gray-800 focus:outline-none" />
+                </div>
+                <div className="px-4 py-2.5">
+                  <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Hasta</label>
+                  <input type="time" value={fin} onChange={e => setFin(e.target.value)} required
+                    className="w-full bg-transparent text-sm text-gray-800 focus:outline-none" />
+                </div>
+              </div>
+              <div className="border-t border-gray-100 px-4 py-2.5">
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Motivo (opcional)</label>
+                <input type="text" value={motivo} onChange={e => setMotivo(e.target.value)}
+                  placeholder="Feriado, corte de luz..."
+                  className="w-full bg-transparent text-sm text-gray-800 placeholder:text-gray-300 focus:outline-none" />
               </div>
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Motivo (opcional)</label>
-              <input
-                type="text"
-                value={motivo}
-                onChange={e => setMotivo(e.target.value)}
-                placeholder="Feriado, corte de luz..."
-                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-800"
-              />
-            </div>
-            <div className="flex gap-2 pt-1">
+            <div className="flex gap-2">
               <button type="submit" className="bg-gray-900 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-700 transition-colors">
                 {editando ? "Guardar cambios" : "Crear bloqueo"}
               </button>
