@@ -139,7 +139,7 @@ export default function BloqueosPage() {
         <div className="space-y-3">
           {futuros.length > 0 && (
             <div>
-              <p className="text-xs text-gray-500 font-semibold uppercase tracking-widest mb-2 px-1">Proximos</p>
+              <p className="text-xs text-gray-500 font-semibold uppercase tracking-widest mb-2 px-1">Próximos</p>
               {futuros.map(b => (
                 <div key={b.id} className={`rounded-2xl border p-4 mb-2 flex items-center justify-between gap-3 ${editando?.id === b.id ? "border-gray-400 bg-gray-50" : "border-orange-200 bg-orange-50"}`}>
                   <div className="min-w-0">

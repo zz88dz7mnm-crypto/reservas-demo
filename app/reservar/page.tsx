@@ -210,7 +210,7 @@ export default function ReservarPage() {
     <div className="min-h-dvh bg-white flex flex-col">
 
       {/* Header */}
-      <header className="flex items-center gap-3 px-5 pt-safe pt-6 pb-4 shrink-0 border-b border-neutral-100">
+      <header className="flex items-center gap-3 px-5 pt-6 pb-4 shrink-0 border-b border-neutral-100">
         {step > 1 && (
           <button
             onClick={() => { setStep(s => s - 1); setError(""); }}
@@ -253,7 +253,7 @@ export default function ReservarPage() {
         {/* PASO 1: Servicio */}
         {step === 1 && (
           <div className="flex-1 flex flex-col px-5 pt-6">
-            <h1 className="text-2xl font-bold text-neutral-900 mb-1">Que necesitas?</h1>
+            <h1 className="text-2xl font-bold text-neutral-900 mb-1">¿Qué necesitás?</h1>
             <p className="text-neutral-400 text-sm mb-6">Elegí el servicio para continuar</p>
             <div className="space-y-2">
               {servicios.map(s => (
@@ -281,8 +281,8 @@ export default function ReservarPage() {
         {/* PASO 2: Fecha */}
         {step === 2 && (
           <div className="flex-1 flex flex-col px-5 pt-6 overflow-y-auto">
-            <h1 className="text-2xl font-bold text-neutral-900 mb-1">Que dia?</h1>
-            <p className="text-neutral-400 text-sm mb-6">Podes reservar hasta 30 dias adelante</p>
+            <h1 className="text-2xl font-bold text-neutral-900 mb-1">¿Qué día?</h1>
+            <p className="text-neutral-400 text-sm mb-6">Podés reservar hasta 30 días adelante</p>
             <Calendario seleccionada={fechaSel} onSelect={seleccionarFecha} />
           </div>
         )}
@@ -318,7 +318,7 @@ export default function ReservarPage() {
               <div className="flex-1 overflow-y-auto px-5 pb-6 space-y-6">
                 {manana.length > 0 && (
                   <div>
-                    <p className="text-xs text-neutral-400 font-semibold tracking-widest uppercase mb-3">Manana</p>
+                    <p className="text-xs text-neutral-400 font-semibold tracking-widest uppercase mb-3">Mañana</p>
                     <div className="grid grid-cols-3 gap-2">
                       {manana.map(h => (
                         <button

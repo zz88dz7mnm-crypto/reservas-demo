@@ -41,7 +41,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# SQLite — contiene datos de clientes, no versionar
+# SQLite
 database.sqlite
 database.sqlite-wal
 database.sqlite-shm
+
+# Archivos temporales y de trabajo
+.codex_tmp/
+.claude/
+*.docx
+*.pdf

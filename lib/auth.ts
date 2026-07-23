@@ -39,4 +39,14 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: { signIn: "/admin/login" },
   secret: secret || "supersecret-local-dev",
+  callbacks: {
+    jwt({ token, user }) {
+      if (user) token.adminId = user.id;
+      return token;
+    },
+    session({ session, token }) {
+      if (token.adminId) (session.user as Record<string, unknown>).id = token.adminId;
+      return session;
+    },
+  },
 };
