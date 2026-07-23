@@ -77,6 +77,15 @@ export default function ReservasPage() {
     cargar(fecha);
   };
 
+  const atender = async (id: number) => {
+    await fetch("/api/admin/reservas", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    cargar(fecha);
+  };
+
   // Confirmadas = pendiente de asistencia o asistencia ya confirmada
   const activas = reservas.filter(r => r.estado !== "cancelada");
   const pendientes = reservas.filter(r => r.estado === "confirmada"); // sin confirmar asistencia
@@ -179,7 +188,7 @@ export default function ReservasPage() {
         </div>
       ) : (
         <div className="space-y-2">
-          {activas.map(r => <TurnoCard key={r.id} r={r} onActuar={actuar} />)}
+          {activas.map(r => <TurnoCard key={r.id} r={r} onActuar={actuar} onAtender={atender} />)}
           {canceladas.length > 0 && (
             <>
               <p className="text-xs text-gray-400 font-semibold uppercase tracking-widest pt-4 pb-1 px-1">Cancelados</p>
@@ -192,7 +201,7 @@ export default function ReservasPage() {
   );
 }
 
-function TurnoCard({ r, onActuar }: { r: Reserva; onActuar: (id: number, estado: string) => void }) {
+function TurnoCard({ r, onActuar, onAtender }: { r: Reserva; onActuar: (id: number, estado: string) => void; onAtender?: (id: number) => void }) {
   const cancelada = r.estado === "cancelada";
   const asistOk = r.estado === "asistencia_confirmada";
 
@@ -236,18 +245,29 @@ function TurnoCard({ r, onActuar }: { r: Reserva; onActuar: (id: number, estado:
         <div className="flex flex-col gap-2 shrink-0">
           {!cancelada && (
             <>
+              {/* Atendido — borra el turno */}
+              <button
+                onClick={() => onAtender?.(r.id)}
+                title="Marcar como atendido"
+                className="w-9 h-9 rounded-xl bg-gray-900 text-white flex items-center justify-center hover:bg-gray-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </button>
+
               {/* Confirmar asistencia / desconfirmar */}
               <button
                 onClick={() => onActuar(r.id, asistOk ? "confirmada" : "asistencia_confirmada")}
-                title={asistOk ? "Quitar confirmación" : "Marcar que viene"}
+                title={asistOk ? "Quitar confirmación" : "Confirmó que viene"}
                 className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
                   asistOk
                     ? "bg-emerald-500 text-white hover:bg-emerald-600"
                     : "bg-gray-100 text-gray-400 hover:bg-emerald-100 hover:text-emerald-600"
                 }`}
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                 </svg>
               </button>
 

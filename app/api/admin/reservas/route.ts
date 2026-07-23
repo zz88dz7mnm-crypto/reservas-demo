@@ -36,6 +36,22 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ reservas });
 }
 
+export async function DELETE(req: NextRequest) {
+  if (!(await checkAuth())) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  let body: Record<string, unknown>;
+  try { body = await req.json(); } catch {
+    return NextResponse.json({ error: "Cuerpo inválido." }, { status: 400 });
+  }
+
+  const { id } = body;
+  if (!id) return NextResponse.json({ error: "ID requerido." }, { status: 400 });
+
+  const { error } = await supabase.from("reservas").delete().eq("id", id);
+  if (error) return NextResponse.json({ error: "Error al eliminar." }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}
+
 export async function PUT(req: NextRequest) {
   if (!(await checkAuth())) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
 
