@@ -6,13 +6,8 @@ import bcrypt from "bcryptjs";
 
 async function getAdminId(): Promise<number | null> {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.name) return null;
-  const { data } = await supabase
-    .from("admins")
-    .select("id")
-    .eq("username", session.user.name)
-    .maybeSingle();
-  return data?.id ?? null;
+  const id = (session?.user as Record<string, unknown> | undefined)?.id;
+  return id ? Number(id) : null;
 }
 
 export async function PUT(req: NextRequest) {
@@ -35,7 +30,7 @@ export async function PUT(req: NextRequest) {
 
   const { data: admin } = await supabase
     .from("admins")
-    .select("username, password_hash")
+    .select("password_hash")
     .eq("id", adminId)
     .maybeSingle();
 
