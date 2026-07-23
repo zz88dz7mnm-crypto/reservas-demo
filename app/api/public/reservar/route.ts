@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
     if (error.message.includes("HORARIO_OCUPADO") || error.message.includes("HORARIO_BLOQUEADO")) {
       return NextResponse.json({ error: "Este horario ya no está disponible. Por favor elegí otro." }, { status: 409 });
     }
-    return NextResponse.json({ error: "Error al procesar la reserva." }, { status: 500 });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
   return NextResponse.json({ ok: true, reserva_id: data, hora_fin: horaFin });
