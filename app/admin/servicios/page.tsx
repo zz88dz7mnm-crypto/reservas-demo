@@ -80,7 +80,7 @@ export default function ServiciosPage() {
                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gray-300 text-gray-800"
               />
             </div>
-            <div className="flex gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div className="flex-1">
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Duración aprox. (min)</label>
                 <input
