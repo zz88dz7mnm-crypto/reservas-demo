@@ -13,7 +13,11 @@ function formatFecha(fecha: string) {
   return `${DIAS[dt.getDay()]} ${d} ${MESES[m - 1]} ${y}`;
 }
 
-const hoyISO = new Date().toISOString().split("T")[0];
+function getHoyISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+const hoyISO = getHoyISO();
 
 export default function BloqueosPage() {
   const [bloqueos, setBloqueos] = useState<Bloqueo[]>([]);
@@ -85,6 +89,7 @@ export default function BloqueosPage() {
               <div className="px-4 py-2.5">
                 <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Fecha</label>
                 <input type="date" value={fecha} onChange={e => setFecha(e.target.value)} required
+                  min={hoyISO}
                   className="w-full bg-transparent text-sm text-gray-800 focus:outline-none" />
               </div>
               <div className="border-t border-gray-100 grid grid-cols-2">
