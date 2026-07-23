@@ -68,3 +68,19 @@ export async function PUT(req: NextRequest) {
   if (!data || data.length === 0) return NextResponse.json({ error: "Servicio no encontrado." }, { status: 404 });
   return NextResponse.json({ ok: true });
 }
+
+export async function DELETE(req: NextRequest) {
+  if (!(await checkAuth())) return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+
+  let body: Record<string, unknown>;
+  try { body = await req.json(); } catch {
+    return NextResponse.json({ error: "Cuerpo inválido." }, { status: 400 });
+  }
+
+  const { id } = body;
+  if (!id) return NextResponse.json({ error: "ID requerido." }, { status: 400 });
+
+  const { error } = await supabase.from("servicios").delete().eq("id", id);
+  if (error) return NextResponse.json({ error: "Error al eliminar servicio." }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}

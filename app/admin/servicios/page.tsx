@@ -59,6 +59,16 @@ export default function ServiciosPage() {
     setPrecio(s.precio != null ? String(s.precio) : "");
   };
 
+  const eliminar = async (s: Servicio) => {
+    if (!confirm(`¿Eliminar "${s.nombre}"? Esta acción no se puede deshacer.`)) return;
+    await fetch("/api/admin/servicios", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: s.id }),
+    });
+    cargar();
+  };
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Servicios</h1>
@@ -123,8 +133,11 @@ export default function ServiciosPage() {
                   Editar
                 </button>
                 <button onClick={() => toggleActivo(s)}
-                  className={`text-xs px-3 py-1.5 rounded-lg transition-colors font-medium ${s.activo ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-green-50 text-green-700 hover:bg-green-100"}`}>
+                  className={`text-xs px-3 py-1.5 rounded-lg transition-colors font-medium ${s.activo ? "bg-amber-50 text-amber-700 hover:bg-amber-100" : "bg-green-50 text-green-700 hover:bg-green-100"}`}>
                   {s.activo ? "Desactivar" : "Activar"}
+                </button>
+                <button onClick={() => eliminar(s)} className="text-xs bg-red-50 text-red-600 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors font-medium">
+                  Eliminar
                 </button>
               </div>
             </div>
