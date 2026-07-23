@@ -15,11 +15,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const res = await signIn("credentials", {
-      username,
-      password,
-      redirect: false,
-    });
+    const res = await signIn("credentials", { username, password, redirect: false });
     setLoading(false);
     if (res?.ok) {
       router.push("/admin/reservas");
@@ -29,47 +25,101 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-sm">
-        <div className="text-center mb-6">
-          <h1 className="text-xl font-bold text-gray-800">Panel Admin</h1>
-          <p className="text-sm text-gray-400">Acceso exclusivo para el negocio</p>
+    <div
+      className="min-h-screen flex flex-col items-center justify-center px-6"
+      style={{ background: "oklch(95% 0.008 55)" }}
+    >
+      {/* Marca */}
+      <div className="mb-10 flex flex-col items-center gap-3">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center"
+          style={{ background: "oklch(20% 0.005 55)" }}
+        >
+          <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M6.5 5a2.5 2.5 0 100 5 2.5 2.5 0 000-5z"/>
+            <path d="M6.5 14a2.5 2.5 0 100 5 2.5 2.5 0 000-5z"/>
+            <path d="M9 7.5L20 3M9 16.5L20 21M9 7.5L15 12M9 16.5L15 12M15 12L20 3M15 12L20 21"/>
+          </svg>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3 text-sm">
-              {error}
-            </div>
-          )}
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Usuario</label>
+        <div className="text-center">
+          <p className="font-bold text-lg tracking-tight" style={{ color: "oklch(18% 0.005 55)" }}>Panel</p>
+          <p className="text-sm" style={{ color: "oklch(52% 0.006 55)" }}>Acceso exclusivo</p>
+        </div>
+      </div>
+
+      {/* Formulario */}
+      <form onSubmit={handleSubmit} className="w-full max-w-sm flex flex-col gap-4">
+        {error && (
+          <p
+            className="text-sm text-center rounded-2xl px-4 py-3"
+            style={{
+              background: "oklch(94% 0.04 25)",
+              color: "oklch(42% 0.14 25)",
+              border: "1px solid oklch(85% 0.07 25)",
+            }}
+          >
+            {error}
+          </p>
+        )}
+
+        {/* Bloque unificado de inputs */}
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{
+            background: "oklch(99.5% 0.003 55)",
+            boxShadow: "0 1px 3px oklch(0% 0 0 / 0.06), 0 0 0 1px oklch(0% 0 0 / 0.05)",
+          }}
+        >
+          <div className="px-5 pt-4 pb-3">
+            <label
+              className="block text-[11px] font-bold uppercase tracking-widest mb-1.5"
+              style={{ color: "oklch(52% 0.006 55)" }}
+            >
+              Usuario
+            </label>
             <input
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              onChange={e => setUsername(e.target.value)}
+              autoComplete="username"
               required
+              placeholder="tu usuario"
+              className="w-full bg-transparent text-base focus:outline-none placeholder:opacity-30"
+              style={{ color: "oklch(15% 0.005 55)" }}
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Contraseña</label>
+
+          <div style={{ height: 1, background: "oklch(90% 0.005 55)", margin: "0 20px" }} />
+
+          <div className="px-5 pt-3 pb-4">
+            <label
+              className="block text-[11px] font-bold uppercase tracking-widest mb-1.5"
+              style={{ color: "oklch(52% 0.006 55)" }}
+            >
+              Contraseña
+            </label>
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-gray-400"
+              onChange={e => setPassword(e.target.value)}
+              autoComplete="current-password"
               required
+              placeholder="••••••••"
+              className="w-full bg-transparent text-base focus:outline-none placeholder:opacity-30"
+              style={{ color: "oklch(15% 0.005 55)" }}
             />
           </div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gray-900 hover:bg-gray-700 text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-50"
-          >
-            {loading ? "Entrando..." : "Ingresar"}
-          </button>
-        </form>
-      </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full font-bold py-4 rounded-2xl text-base transition-opacity disabled:opacity-50"
+          style={{ background: "oklch(20% 0.005 55)", color: "oklch(97% 0.003 55)" }}
+        >
+          {loading ? "Entrando..." : "Ingresar"}
+        </button>
+      </form>
     </div>
   );
 }
