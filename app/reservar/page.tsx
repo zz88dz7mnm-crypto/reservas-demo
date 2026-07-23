@@ -172,9 +172,16 @@ export default function ReservarPage() {
     const d = await r.json();
     setLoading(false);
     if (!r.ok) {
-      setError(d.error || "Error al reservar");
-      await cargarHuecos(fechaSel, servicioSel!, peluqueroSel);
-      setHuecoSel(null); setStep(4); return;
+      if (r.status === 409) {
+        // Horario tomado — volver a elegir hora
+        setError(d.error || "Este horario ya no está disponible.");
+        await cargarHuecos(fechaSel, servicioSel!, peluqueroSel);
+        setHuecoSel(null); setStep(4);
+      } else {
+        // Otro error — quedarse en paso 5 y mostrar mensaje
+        setError(d.error || `Error ${r.status}: contactá al administrador.`);
+      }
+      return;
     }
     setReservaFinal({
       servicio: servicioSel!.nombre,
